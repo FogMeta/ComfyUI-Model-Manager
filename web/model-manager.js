@@ -293,7 +293,34 @@ class ModelManager extends ComfyDialog {
 
     #createSourceInstall() {
         this.#createSourceList();
-
+        const createInputField = (placeholder) => {
+            return $el('div.row', [
+                $el('input', { 
+                    placeholder: placeholder, 
+                    style: { flex: 1 }
+                })
+            ]);
+        };
+    
+        const typeInput = createInputField('Type (e.g., checkpoint)');
+        // const baseInput = createInputField('Base');
+        const nameInput = createInputField('Name');
+        // const pageInput = createInputField('Page URL');
+        const downloadInput = createInputField('Download URL');
+        // const descriptionInput = 'custom model'
+        // Button to trigger the download
+        const downloadButton = $el('button', {
+            type: 'button',
+            textContent: 'Custom Download',
+            onclick: () => this.#downloadModel({
+                type: typeInput.children[0].value,
+                // base: baseInput.children[0].value,
+                name: nameInput.children[0].value,
+                // page: pageInput.children[0].value,
+                download: downloadInput.children[0].value,
+                description: 'custom model',
+            })
+        });
         return [
             $el("div.row", [
                 $el("button", {
@@ -347,10 +374,46 @@ class ModelManager extends ComfyDialog {
                     textContent: "Search",
                     onclick: () => this.#filterSourceList(),
                 }),
+                
             ]),
+            $el("div.row", [
+            typeInput,
+            // baseInput,
+            nameInput,
+            // pageInput,
+            downloadInput,
+            downloadButton]),
+            
             this.#sourceList.element,
         ];
     }
+
+    // Custom Download function
+    #downloadModel(modelData) {
+        if (!modelData.download) {
+            alert('Please enter a download URL.');
+            return;
+        }
+    
+        // Trigger the download
+        this.#request('/model-manager/download', {
+            method: 'POST',
+            body: JSON.stringify(modelData)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Model downloaded successfully.');
+            } else {
+                alert('Failed to download the model.');
+            }
+        })
+        .catch(error => {
+            console.error('Error downloading model:', error);
+            alert('Error occurred while downloading the model.');
+        });
+    }
+    
+
 
     #createSourceList() {
         const sourceList = new List([
