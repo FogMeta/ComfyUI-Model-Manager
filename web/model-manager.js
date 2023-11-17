@@ -312,6 +312,7 @@ class ModelManager extends ComfyDialog {
         const downloadButton = $el('button', {
             type: 'button',
             textContent: 'Custom Download',
+            style: { 'font-size': '15px' },
             onclick: () => this.#downloadModel({
                 type: typeInput.children[0].value,
                 // base: baseInput.children[0].value,
