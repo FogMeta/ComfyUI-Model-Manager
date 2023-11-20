@@ -120,7 +120,8 @@ def download_model_file(url, filename):
 
     downloaded_size = 0
     if os.path.exists(dl_filename):
-        downloaded_size = os.path.getsize(download_file)
+        # downloaded_size = os.path.getsize(download_file)
+        downloaded_size = os.path.getsize(dl_filename)
 
     headers = {"Range": "bytes=%d-" % downloaded_size}
     headers["User-Agent"] = def_headers["User-Agent"]
@@ -135,7 +136,10 @@ def download_model_file(url, filename):
                 f.flush()
 
                 progress = int(50 * downloaded_size / total_size)
-                sys.stdout.reconfigure(encoding="utf-8")
+                try:
+                    sys.stdout.reconfigure(encoding="utf-8")
+                except AttributeError:
+                    pass
                 sys.stdout.write(
                     "\r[%s%s] %d%%"
                     % (
