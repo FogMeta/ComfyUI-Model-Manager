@@ -304,7 +304,7 @@ class ModelManager extends ComfyDialog {
     
         const typeInput = createInputField('Type (e.g., checkpoint)');
         // const baseInput = createInputField('Base');
-        const nameInput = createInputField('Name');
+        // const nameInput = createInputField('Name');
         // const pageInput = createInputField('Page URL');
         const downloadInput = createInputField('Download URL');
         // const descriptionInput = 'custom model'
@@ -312,13 +312,13 @@ class ModelManager extends ComfyDialog {
         const downloadButton = $el('button', {
             type: 'button',
             textContent: 'Custom Download',
-            style: { 'font-size': '15px' },
+            style: { 'font-size': '15px' ,'height': '50%'},
             onclick: () => this.#downloadModel({
                 type: typeInput.children[0].value,
                 // base: baseInput.children[0].value,
-                name: nameInput.children[0].value,
                 // page: pageInput.children[0].value,
                 download: downloadInput.children[0].value,
+                name: downloadInput.children[0].value.split("/").pop(),
                 description: 'custom model',
             })
         });
@@ -380,7 +380,7 @@ class ModelManager extends ComfyDialog {
             $el("div.row", [
             typeInput,
             // baseInput,
-            nameInput,
+            // nameInput,
             // pageInput,
             downloadInput,
             downloadButton]),
@@ -395,16 +395,18 @@ class ModelManager extends ComfyDialog {
             alert('Please enter a download URL.');
             return;
         }
-    
+        alert('Downloading model...');
+        console.log(modelData);
         // Trigger the download
         this.#request('/model-manager/download', {
             method: 'POST',
             body: JSON.stringify(modelData)
         })
         .then(response => {
-            if (response.ok) {
+            if (response.success) {
                 alert('Model downloaded successfully.');
             } else {
+                console.log(response);
                 alert('Failed to download the model.');
             }
         })
@@ -454,6 +456,7 @@ class ModelManager extends ComfyDialog {
                         textContent: installed ? "Installed" : "Install",
                         onclick: async (e) => {
                             e.disabled = true;
+                            console.log(record);
                             const response = await this.#request(
                                 "/model-manager/download",
                                 {
