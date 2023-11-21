@@ -304,7 +304,7 @@ class ModelManager extends ComfyDialog {
     
         const typeInput = createInputField('Type (e.g., checkpoint)');
         // const baseInput = createInputField('Base');
-        // const nameInput = createInputField('Name');
+        const nameInput = createInputField('Name');
         // const pageInput = createInputField('Page URL');
         const downloadInput = createInputField('Download URL');
         // const descriptionInput = 'custom model'
@@ -318,7 +318,8 @@ class ModelManager extends ComfyDialog {
                 // base: baseInput.children[0].value,
                 // page: pageInput.children[0].value,
                 download: downloadInput.children[0].value,
-                name: downloadInput.children[0].value.split("/").pop(),
+                // name: downloadInput.children[0].value.split("/").pop(),
+                name: nameInput.children[0].value,
                 description: 'custom model',
             })
         });
@@ -380,7 +381,7 @@ class ModelManager extends ComfyDialog {
             $el("div.row", [
             typeInput,
             // baseInput,
-            // nameInput,
+            nameInput,
             // pageInput,
             downloadInput,
             downloadButton]),
