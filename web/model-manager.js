@@ -301,25 +301,32 @@ class ModelManager extends ComfyDialog {
                 })
             ]);
         };
-    
-        const typeInput = createInputField('Type (e.g., checkpoint)');
-        // const baseInput = createInputField('Base');
+        const createInputFieldWtHint = (data) => {
+            return $el('div.row', [
+                $el('input', { 
+                    placeholder: data.placeholder, 
+                    style: { flex: 1 },
+                    value: data.value
+                })
+            ]);
+        };
         const nameInput = createInputField('Name');
-        // const pageInput = createInputField('Page URL');
+        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'models/checkpoints'});
         const downloadInput = createInputField('Download URL');
-        // const descriptionInput = 'custom model'
+
         // Button to trigger the download
         const downloadButton = $el('button', {
             type: 'button',
             textContent: 'Custom Download',
             style: { 'font-size': '15px' ,'height': '50%'},
             onclick: () => this.#downloadModel({
-                type: typeInput.children[0].value,
+                // type: typeInput.children[0].value,
                 // base: baseInput.children[0].value,
                 // page: pageInput.children[0].value,
                 download: downloadInput.children[0].value,
                 // name: downloadInput.children[0].value.split("/").pop(),
                 name: nameInput.children[0].value,
+                path: pathInput.children[0].value,
                 description: 'custom model',
             })
         });
@@ -379,10 +386,10 @@ class ModelManager extends ComfyDialog {
                 
             ]),
             $el("div.row", [
-            typeInput,
+            // typeInput,
             // baseInput,
             nameInput,
-            // pageInput,
+            pathInput,
             downloadInput,
             downloadButton]),
             
@@ -396,26 +403,64 @@ class ModelManager extends ComfyDialog {
             alert('Please enter a download URL.');
             return;
         }
-        alert('Downloading model...');
-        console.log(modelData);
-        // Trigger the download
-        this.#request('/model-manager/download', {
+        if (!modelData.path) {
+            alert('Please enter a download path.');
+            return;
+        }
+        if (!modelData.name) {
+            alert('Please enter a model name.');
+            return;
+        }
+
+
+        if (!modelData.download) {
+            alert('Please enter a download URL.');
+            return;
+        }
+        if (!modelData.path) {
+            alert('Please enter a download path.');
+            return;
+        }
+        if (!modelData.name) {
+            alert('Please enter a model name.');
+            return;
+        }
+        const payload = {"url":modelData.download, 
+                    "directory":modelData.path, 
+                    "filename":modelData.name}
+        // Send a request to the server to download the model
+        alert('Sending request to download model. Please wait a few minutes.')
+        fetch('http://localhost:3000/download', {
             method: 'POST',
-            body: JSON.stringify(modelData)
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
         })
-        .then(response => {
-            if (response.success) {
-                alert('Model downloaded successfully.');
-            } else {
-                console.log(response);
-                alert('Failed to download the model.');
-            }
-        })
-        .catch(error => {
-            console.error('Error downloading model:', error);
-            alert('Error occurred while downloading the model.');
-        });
+        .then(response => response.text())
+        .then(data => alert(data))
+        .catch(error => console.error('Error:', error));
     }
+        // console.log(modelData);
+        // // Trigger the download
+        // this.#request('/model-manager/download', {
+        //     method: 'POST',
+        //     body: JSON.stringify(modelData)
+        // })
+        // .then(response => {
+        //     if (response.success) {
+        //         alert('Model downloaded successfully.');
+        //     } else {
+        //         console.log(response);
+        //         alert('Failed to download the model.');
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Error downloading model:', error);
+        //     alert('Error occurred while downloading the model.');
+        // });
+    
     
 
 
