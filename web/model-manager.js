@@ -412,19 +412,6 @@ class ModelManager extends ComfyDialog {
             return;
         }
 
-
-        if (!modelData.download) {
-            alert('Please enter a download URL.');
-            return;
-        }
-        if (!modelData.path) {
-            alert('Please enter a download path.');
-            return;
-        }
-        if (!modelData.name) {
-            alert('Please enter a model name.');
-            return;
-        }
         const payload = {"url":modelData.download, 
                     "directory":modelData.path, 
                     "filename":modelData.name}
