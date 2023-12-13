@@ -278,7 +278,7 @@ class ModelManager extends ComfyDialog {
                         $tab("Source Install", this.#createSourceInstall()),
                         $tab("Customer Install", []),
                         $tab("Model List", this.#createModelList()),
-                        $tab("Downloaded Models", []),
+                        $tab("Fetched Models", []),
                         // 列下载模型，路径，名字，大小， refersh，权限问题？
                     ]),
                 ]),
@@ -291,7 +291,7 @@ class ModelManager extends ComfyDialog {
     #init() {
         this.#refreshSourceList();
         this.#refreshModelList();
-        const downloadedModelsTab = this.element.querySelector('[data-name="Downloaded Models"]');
+        const downloadedModelsTab = this.element.querySelector('[data-name="Fetched Models"]');
         if (downloadedModelsTab) {
             const downloadedModelContent = this.#createDownloadedModelTab();
             
@@ -325,7 +325,7 @@ class ModelManager extends ComfyDialog {
         // Button to trigger the download
         const downloadButton = $el('button', {
             type: 'button',
-            textContent: 'Custom Download',
+            textContent: 'Fetch Model',
             style: { 'font-size': '15px' ,'height': '50%'},
             onclick: () => this.#downloadModel({
                 // type: typeInput.children[0].value,
