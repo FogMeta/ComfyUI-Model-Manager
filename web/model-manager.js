@@ -516,11 +516,38 @@ createTableFromCSVData(csvData) {
     #createDownloadedModelTab() {
         const contentContainer = $el('div', {});
 
-        this.fetchFileContent().then(content => {
-            contentContainer.appendChild(this.createTableFromCSVData(content));
-        }).catch(() => {
-            contentContainer.textContent = 'Error loading content';
+        // Fetch and display the model list
+        const fetchAndDisplayModels = () => {
+            this.fetchFileContent().then(content => {
+                // Clear existing table before appending new one
+                const currentTable = contentContainer.querySelector('.csv-table');
+                if (currentTable) {
+                    contentContainer.removeChild(currentTable);
+                }
+    
+                const table = this.createTableFromCSVData(content);
+                contentContainer.appendChild(table); // Append the table after the button
+            }).catch(() => {
+                contentContainer.textContent = 'Error loading content';
+            });
+        };
+
+        // Create a refresh button
+        const refreshButton = $el('button', {
+            textContent: 'Refresh',
+            onclick: fetchAndDisplayModels,
+            style: {
+                fontSize: '17px', // Smaller font size
+                padding: '0px 10px', // Smaller padding
+                height: '30px', // Smaller height
+                marginBottom: '10px' // Add margin to the bottom
+            }
         });
+        // Append the refresh button
+        contentContainer.appendChild(refreshButton);
+        
+        // Initially fetch and display models
+        fetchAndDisplayModels();
 
         return contentContainer;
     }
