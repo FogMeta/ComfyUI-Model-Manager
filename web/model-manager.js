@@ -526,7 +526,9 @@ createTableFromCSVData(csvData) {
                 }
     
                 const table = this.createTableFromCSVData(content);
-                contentContainer.appendChild(table); // Append the table after the button
+                if (table.textContent != 'No data available') {
+                contentContainer.appendChild(table);  // Append the table after the button
+                }   
             }).catch(() => {
                 contentContainer.textContent = 'Error loading content';
             });
