@@ -278,6 +278,8 @@ class ModelManager extends ComfyDialog {
                         $tab("Source Install", this.#createSourceInstall()),
                         $tab("Customer Install", []),
                         $tab("Model List", this.#createModelList()),
+                        $tab("Downloaded Models", []),
+                        // 列下载模型，路径，名字，大小， refersh，权限问题？
                     ]),
                 ]),
             ]
@@ -289,6 +291,12 @@ class ModelManager extends ComfyDialog {
     #init() {
         this.#refreshSourceList();
         this.#refreshModelList();
+        const downloadedModelsTab = this.element.querySelector('[data-name="Downloaded Models"]');
+        if (downloadedModelsTab) {
+            const downloadedModelContent = this.#createDownloadedModelTab();
+            
+            downloadedModelsTab.appendChild(downloadedModelContent);
+        }
     }
 
     #createSourceInstall() {
@@ -311,7 +319,7 @@ class ModelManager extends ComfyDialog {
             ]);
         };
         const nameInput = createInputField('Name');
-        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'models/checkpoints'});
+        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'custom_nodes'});
         const downloadInput = createInputField('Download URL');
 
         // Button to trigger the download
@@ -447,7 +455,75 @@ class ModelManager extends ComfyDialog {
         //     console.error('Error downloading model:', error);
         //     alert('Error occurred while downloading the model.');
         // });
-    
+
+    // Method to make API call and fetch file content
+    // CSV Parser
+    parseCSV(csvText) {
+        const lines = csvText.split('\n');
+        const headers = lines[0].split(',');
+        return lines.slice(1).map(line => {
+            const data = line.split(',');
+            return headers.reduce((obj, nextKey, index) => {
+                obj[nextKey] = data[index];
+                return obj;
+            }, {});
+        });
+    }
+
+    // Create table from CSV data
+createTableFromCSVData(csvData) {
+        if (!csvData.length) {
+            return $el('div', {textContent: 'No data available'});
+        }
+
+        // Extract column names from the first record
+        const columns = Object.keys(csvData[0]);
+        const table = $el('table', {className: 'comfy-table csv-table'}); // Added 'csv-table' class
+        const thead = $el('thead');
+        const tbody = $el('tbody');
+
+        // Create table header
+        const headerRow = $el('tr');
+        columns.forEach(column => {
+            headerRow.appendChild($el('th', {textContent: column, className: 'csv-table-cell'})); // Added 'csv-table-cell' class
+        });
+        thead.appendChild(headerRow);
+
+        // Create table body
+        csvData.forEach(row => {
+            const bodyRow = $el('tr');
+            columns.forEach(column => {
+                bodyRow.appendChild($el('td', {textContent: row[column] || '-', className: 'csv-table-cell'})); // Added 'csv-table-cell' class
+            });
+            tbody.appendChild(bodyRow);
+        });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        return table;
+    }
+    async fetchFileContent() {
+        try {
+            const response = await fetch('http://localhost:3000/file-content?filename=yourfile.txt');
+            const text = await response.text();
+            return this.parseCSV(text);
+        } catch (error) {
+            console.error('Error fetching file content:', error);
+            return 'Failed to load content';
+        }
+    }
+    #createDownloadedModelTab() {
+        const contentContainer = $el('div', {});
+
+        this.fetchFileContent().then(content => {
+            contentContainer.appendChild(this.createTableFromCSVData(content));
+        }).catch(() => {
+            contentContainer.textContent = 'Error loading content';
+        });
+
+        return contentContainer;
+    }
     
 
 
@@ -626,7 +702,7 @@ app.registerExtension({
 
         $el("button", {
             parent: document.querySelector(".comfy-menu"),
-            textContent: "Models",
+            textContent: "Model Manager",
             style: { order: 1 },
             onclick: () => {
                 getInstance().show();
