@@ -68,7 +68,7 @@ app.post('/download', (req, res) => {
     }
     
     const comfyUIDir = path.resolve(__dirname + '/../../../');
-    const safePath = path.resolve(comfyUIDir + '/' + directory);
+    const safePath = path.resolve(comfyUIDir + '/' + directory) + '/';
 
     directory = comfyUIDir + '/' + directory;
     console.log("Safe Path: " + safePath)
@@ -114,7 +114,7 @@ app.post('/download', (req, res) => {
 
         // Check if custom_model.txt exists
         if (!fs.existsSync(__dirname + '/custom_model.txt')) {
-            fs.writeFile('custom_model.txt', 'Path,Size (GB),URL\n', {flag: 'w', encoding: "utf8",}, (err) => {
+            fs.writeFile('custom_model.txt', 'Path,Size (GB),URL', {flag: 'w', encoding: "utf8",}, (err) => {
                 if (err) {
                     throw err;
                 }
@@ -122,7 +122,7 @@ app.post('/download', (req, res) => {
             });
         }
         // Append to custom_model.txt
-        fs.writeFile('custom_model.txt',safePath + '/' + filename + ',' + fileSizeInMegabytes +',' + url  + '\n', {flag: 'a+', encoding: "utf8",}, (err) => { 
+        fs.writeFile('custom_model.txt','\n' + safePath + '/' + filename + ',' + fileSizeInMegabytes +',' + url, {flag: 'a+', encoding: "utf8",}, (err) => { 
             if (err) { 
             throw err; 
             } 

@@ -319,7 +319,7 @@ class ModelManager extends ComfyDialog {
             ]);
         };
         const nameInput = createInputField('Name');
-        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'custom_nodes'});
+        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'custom_models/'});
         const downloadInput = createInputField('Download URL');
 
         // Button to trigger the download
@@ -437,24 +437,6 @@ class ModelManager extends ComfyDialog {
         .then(data => alert(data))
         .catch(error => console.error('Error:', error));
     }
-        // console.log(modelData);
-        // // Trigger the download
-        // this.#request('/model-manager/download', {
-        //     method: 'POST',
-        //     body: JSON.stringify(modelData)
-        // })
-        // .then(response => {
-        //     if (response.success) {
-        //         alert('Model downloaded successfully.');
-        //     } else {
-        //         console.log(response);
-        //         alert('Failed to download the model.');
-        //     }
-        // })
-        // .catch(error => {
-        //     console.error('Error downloading model:', error);
-        //     alert('Error occurred while downloading the model.');
-        // });
 
     // Method to make API call and fetch file content
     // CSV Parser
