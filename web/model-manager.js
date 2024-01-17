@@ -419,13 +419,13 @@ class ModelManager extends ComfyDialog {
             alert('Please enter a model name.');
             return;
         }
-
+        
         const payload = {"url":modelData.download, 
                     "directory":modelData.path, 
                     "filename":modelData.name}
         // Send a request to the server to download the model
         alert('Sending request to download model. Please wait a few minutes.')
-        fetch('http://localhost:3000/download', {
+        api.fetchNodeApi('download', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -433,9 +433,20 @@ class ModelManager extends ComfyDialog {
             },
             body: JSON.stringify(payload),
         })
-        .then(response => response.text())
-        .then(data => alert(data))
-        .catch(error => console.error('Error:', error));
+            .then((response) => response.json())
+            .then (data => alert(data))
+            .catch(error => console.error('Error:', error));
+        // fetch('http://localhost:3000/download', {
+        //     method: 'POST',
+        //     mode: 'cors',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(payload),
+        // })
+        // .then(response => response.text())
+        // .then(data => alert(data))
+        // .catch(error => console.error('Error:', error));
     }
 
     // Method to make API call and fetch file content
