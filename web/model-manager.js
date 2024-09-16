@@ -278,6 +278,8 @@ class ModelManager extends ComfyDialog {
                         $tab("Source Install", this.#createSourceInstall()),
                         $tab("Customer Install", []),
                         $tab("Model List", this.#createModelList()),
+                        $tab("Fetched Models", []),
+                        // 列下载模型，路径，名字，大小， refersh，权限问题？
                     ]),
                 ]),
             ]
@@ -289,6 +291,12 @@ class ModelManager extends ComfyDialog {
     #init() {
         this.#refreshSourceList();
         this.#refreshModelList();
+        const downloadedModelsTab = this.element.querySelector('[data-name="Fetched Models"]');
+        if (downloadedModelsTab) {
+            const downloadedModelContent = this.#createDownloadedModelTab();
+            
+            downloadedModelsTab.appendChild(downloadedModelContent);
+        }
     }
 
     #createSourceInstall() {
@@ -301,24 +309,32 @@ class ModelManager extends ComfyDialog {
                 })
             ]);
         };
-    
-        const typeInput = createInputField('Type (e.g., checkpoint)');
-        // const baseInput = createInputField('Base');
+        const createInputFieldWtHint = (data) => {
+            return $el('div.row', [
+                $el('input', { 
+                    placeholder: data.placeholder, 
+                    style: { flex: 1 },
+                    value: data.value
+                })
+            ]);
+        };
         const nameInput = createInputField('Name');
-        // const pageInput = createInputField('Page URL');
+        const pathInput = createInputFieldWtHint({'placeholder':'Download Path', 'value':'custom_models/'});
         const downloadInput = createInputField('Download URL');
-        // const descriptionInput = 'custom model'
+
         // Button to trigger the download
         const downloadButton = $el('button', {
             type: 'button',
-            textContent: 'Custom Download',
-            style: { 'font-size': '15px' },
+            textContent: 'Fetch Model',
+            style: { 'font-size': '15px' ,'height': '50%'},
             onclick: () => this.#downloadModel({
-                type: typeInput.children[0].value,
+                // type: typeInput.children[0].value,
                 // base: baseInput.children[0].value,
-                name: nameInput.children[0].value,
                 // page: pageInput.children[0].value,
                 download: downloadInput.children[0].value,
+                // name: downloadInput.children[0].value.split("/").pop(),
+                name: nameInput.children[0].value,
+                path: pathInput.children[0].value,
                 description: 'custom model',
             })
         });
@@ -378,10 +394,10 @@ class ModelManager extends ComfyDialog {
                 
             ]),
             $el("div.row", [
-            typeInput,
+            // typeInput,
             // baseInput,
             nameInput,
-            // pageInput,
+            pathInput,
             downloadInput,
             downloadButton]),
             
@@ -395,23 +411,140 @@ class ModelManager extends ComfyDialog {
             alert('Please enter a download URL.');
             return;
         }
-    
-        // Trigger the download
-        this.#request('/model-manager/download', {
+        if (!modelData.path) {
+            alert('Please enter a download path.');
+            return;
+        }
+        if (!modelData.name) {
+            alert('Please enter a model name.');
+            return;
+        }
+        
+        const payload = {"url":modelData.download, 
+                    "directory":modelData.path, 
+                    "filename":modelData.name}
+        // Send a request to the server to download the model
+        alert('Sending request to download model. Please wait a few minutes.')
+        api.fetchNodeApi('download', {
             method: 'POST',
-            body: JSON.stringify(modelData)
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
         })
-        .then(response => {
-            if (response.ok) {
-                alert('Model downloaded successfully.');
-            } else {
-                alert('Failed to download the model.');
-            }
-        })
-        .catch(error => {
-            console.error('Error downloading model:', error);
-            alert('Error occurred while downloading the model.');
+            .then((response) => response.json())
+            .then (data => alert(data))
+            .catch(error => console.error('Error:', error));
+        // fetch('http://localhost:3000/download', {
+        //     method: 'POST',
+        //     mode: 'cors',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(payload),
+        // })
+        // .then(response => response.text())
+        // .then(data => alert(data))
+        // .catch(error => console.error('Error:', error));
+    }
+
+    // Method to make API call and fetch file content
+    // CSV Parser
+    parseCSV(csvText) {
+        const lines = csvText.split('\n');
+        const headers = lines[0].split(',');
+        return lines.slice(1).map(line => {
+            const data = line.split(',');
+            return headers.reduce((obj, nextKey, index) => {
+                obj[nextKey] = data[index];
+                return obj;
+            }, {});
         });
+    }
+
+    // Create table from CSV data
+createTableFromCSVData(csvData) {
+        if (!csvData.length) {
+            return $el('div', {textContent: 'No data available'});
+        }
+
+        // Extract column names from the first record
+        const columns = Object.keys(csvData[0]);
+        const table = $el('table', {className: 'comfy-table csv-table'}); // Added 'csv-table' class
+        const thead = $el('thead');
+        const tbody = $el('tbody');
+
+        // Create table header
+        const headerRow = $el('tr');
+        columns.forEach(column => {
+            headerRow.appendChild($el('th', {textContent: column, className: 'csv-table-cell'})); // Added 'csv-table-cell' class
+        });
+        thead.appendChild(headerRow);
+
+        // Create table body
+        csvData.forEach(row => {
+            const bodyRow = $el('tr');
+            columns.forEach(column => {
+                bodyRow.appendChild($el('td', {textContent: row[column] || '-', className: 'csv-table-cell'})); // Added 'csv-table-cell' class
+            });
+            tbody.appendChild(bodyRow);
+        });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        return table;
+    }
+    async fetchFileContent() {
+        try {
+            const response = await fetch('http://localhost:3000/file-content?filename=yourfile.txt');
+            const text = await response.text();
+            return this.parseCSV(text);
+        } catch (error) {
+            console.error('Error fetching file content:', error);
+            return 'Failed to load content';
+        }
+    }
+    #createDownloadedModelTab() {
+        const contentContainer = $el('div', {});
+
+        // Fetch and display the model list
+        const fetchAndDisplayModels = () => {
+            this.fetchFileContent().then(content => {
+                // Clear existing table before appending new one
+                const currentTable = contentContainer.querySelector('.csv-table');
+                if (currentTable) {
+                    contentContainer.removeChild(currentTable);
+                }
+    
+                const table = this.createTableFromCSVData(content);
+                if (table.textContent != 'No data available') {
+                contentContainer.appendChild(table);  // Append the table after the button
+                }   
+            }).catch(() => {
+                contentContainer.textContent = 'Error loading content';
+            });
+        };
+
+        // Create a refresh button
+        const refreshButton = $el('button', {
+            textContent: 'Refresh',
+            onclick: fetchAndDisplayModels,
+            style: {
+                fontSize: '17px', // Smaller font size
+                padding: '0px 10px', // Smaller padding
+                height: '30px', // Smaller height
+                marginBottom: '10px' // Add margin to the bottom
+            }
+        });
+        // Append the refresh button
+        contentContainer.appendChild(refreshButton);
+        
+        // Initially fetch and display models
+        fetchAndDisplayModels();
+
+        return contentContainer;
     }
     
 
@@ -454,6 +587,7 @@ class ModelManager extends ComfyDialog {
                         textContent: installed ? "Installed" : "Install",
                         onclick: async (e) => {
                             e.disabled = true;
+                            console.log(record);
                             const response = await this.#request(
                                 "/model-manager/download",
                                 {
@@ -590,7 +724,7 @@ app.registerExtension({
 
         $el("button", {
             parent: document.querySelector(".comfy-menu"),
-            textContent: "Models",
+            textContent: "Model Manager",
             style: { order: 1 },
             onclick: () => {
                 getInstance().show();

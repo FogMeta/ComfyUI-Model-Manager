@@ -204,3 +204,34 @@
 .model-manager div[data-name="Model List"] .row {
     align-items: flex-start;
 }
+/* Add this to your CSS file */
+.csv-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.csv-table-cell {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    /* word-wrap: break-word; Ensures text wraps within the cell */
+    overflow: auto;
+    /* text-overflow: ellipsis; */
+    white-space: nowrap;
+    position: relative;
+}
+.csv-table-cell::-webkit-scrollbar {
+    /* width: 1px; Width of the vertical scrollbar */
+    height: 3px; /* Height of the horizontal scrollbar */
+}
+
+/* Style the thumb of the scrollbar */
+.csv-table-cell::-webkit-scrollbar-thumb {
+    background: #888; /* Thumb color */
+    border-radius: 10px;
+}
+
+/* Style the thumb when hovering or clicking on it */
+.csv-table-cell::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
